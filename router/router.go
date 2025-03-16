@@ -24,8 +24,6 @@ func SetupRouter(mode string) *gin.Engine {
 		c.String(http.StatusOK, "pong")
 	})
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"msg": "404",
