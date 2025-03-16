@@ -2,20 +2,55 @@ package main
 
 import (
 	"fmt"
+	"gin-cli/controller"
+	"gin-cli/dao/mysql"
+	"gin-cli/dao/redis"
+	"gin-cli/logger"
+	"gin-cli/pkg/snowflake"
+	"gin-cli/router"
+	"gin-cli/setting"
+	"os"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
-
 func main() {
-	//TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-	// to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-	s := "gopher"
-	fmt.Println("Hello and welcome, %s!", s)
+	if len(os.Args) < 2 {
+		fmt.Println("need config file e.g. config.yaml")
+		return
+	}
+	// 加载配置
+	if err := setting.Init(os.Args[1]); err != nil {
+		fmt.Printf("load config failed, err:%v\n", err)
+		return
+	}
+	if err := logger.Init(setting.Conf.LogConfig, setting.Conf.Mode); err != nil {
+		fmt.Printf("init logger failed, err:%v\n", err)
+		return
+	}
+	if err := mysql.Init(setting.Conf.MySQLConfig); err != nil {
+		fmt.Printf("init mysql failed, err:%v\n", err)
+		return
+	}
+	defer mysql.Close() //程序退出关闭数据库连接
+	if err := redis.Init(setting.Conf.RedisConfig); err != nil {
+		fmt.Printf("init redis failed, err:%v\n", err)
+		return
+	}
+	defer redis.Close()
 
-	for i := 1; i <= 5; i++ {
-		//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-		fmt.Println("i =", 100/i)
+	if err := snowflake.Init(setting.Conf.StartTime, setting.Conf.MachineID); err != nil {
+		fmt.Printf("init snowflake failed, err:%v\n", err)
+		return
+	}
+	// 初始化gin框架内置的校验器使用的翻译器
+	if err := controller.InitTrans("zh"); err != nil {
+		fmt.Printf("init trans failed, err:%v\n", err)
+		return
+	}
+	// 注册路由
+	r := router.SetupRouter(setting.Conf.Mode)
+	err := r.Run(fmt.Sprintf(":%d", setting.Conf.Port))
+	if err != nil {
+		fmt.Printf("start server failed, err:%v\n", err)
+		return
 	}
 }
