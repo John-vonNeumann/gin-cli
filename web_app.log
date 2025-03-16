@@ -5,3 +5,4 @@
 {"level":"INFO","time":"2025-03-16T23:19:28.516+0800","caller":"logger/logger.go:42","msg":"init logger success"}
 {"level":"INFO","time":"2025-03-16T23:20:55.653+0800","caller":"logger/logger.go:42","msg":"init logger success"}
 {"level":"INFO","time":"2025-03-16T23:22:59.249+0800","caller":"logger/logger.go:42","msg":"init logger success"}
+{"level":"INFO","time":"2025-03-16T23:32:29.601+0800","caller":"logger/logger.go:42","msg":"init logger success"}
